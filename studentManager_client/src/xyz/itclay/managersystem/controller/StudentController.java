@@ -2,9 +2,11 @@ package xyz.itclay.managersystem.controller;
 
 import xyz.itclay.managersystem.domain.Student;
 import xyz.itclay.managersystem.util.DateUtil;
+import xyz.itclay.managersystem.util.UserDataVerification;
 
 import java.io.*;
 import java.net.Socket;
+import java.text.ParseException;
 import java.util.Scanner;
 
 /**
@@ -13,6 +15,7 @@ import java.util.Scanner;
  **/
 public class StudentController {
     Scanner scanner = new Scanner(System.in);
+    UserDataVerification udv = new UserDataVerification();
 
     /**
      * 学生信息管理菜单
@@ -123,9 +126,9 @@ public class StudentController {
                 System.out.println("暂无学生信息，请添加后查看！");
             } else {
                 System.out.println("学号\t\t\t姓名\t\t年龄\t\t生日");
-                    String[] splitStr = s.split("、");
+                String[] splitStr = s.split("、");
                 for (String s1 : splitStr) {
-                   String [] split= s1.split(",");
+                    String[] split = s1.split(",");
                     System.out.println(split[0] + "\t" + split[1] + "\t\t" + split[2] + "\t\t" + split[3]);
                 }
             }
@@ -165,56 +168,72 @@ public class StudentController {
     }
 
     public Student inputStudentInfo(String sid) {
-        System.out.println("请输入姓名:");
-        String name = scanner.next();
-        System.out.println("请输入生日,格式示例[1999-11-11]:");
-        String birthday = scanner.next();
-        //根据生日,计算年龄
-        String age = DateUtil.getAge(birthday);
-
         Student stu = new Student();
-        stu.setSid(sid);
-        stu.setName(name);
-        stu.setAge(age);
-        stu.setBirthday(birthday);
+        while (true) {
+            System.out.println("请输入姓名:");
+            String name = scanner.next();
+            if (!udv.nameIsLicit(name)) {
+                System.out.println("姓名输入有误，请重新输入！");
+            } else {
+                System.out.println("请输入生日,格式示例[1999-11-11]:");
+                String birthday = scanner.next();
+                if (udv.timeIsLicit(birthday)) {
+                    //根据生日,计算年龄
+                    String age = DateUtil.getAge(birthday);
 
+
+                    stu.setSid(sid);
+                    stu.setName(name);
+                    stu.setAge(age);
+                    stu.setBirthday(birthday);
+                    break;
+                } else {
+                    System.out.println("日期有误！请重新输入！");
+                }
+            }
+        }
         return stu;
     }
 
+
     /**
-     *判断学号是否可用
+     * 判断学号是否可用
      */
     public String inputId(boolean flag) {
         String id;
         boolean exists = false;
         while (true) {
             id = scanner.next();
-            //1. 拿socket
-            try {
-                Socket socket = getSocket();
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-                bw.write("[5]," + id);
-                bw.flush();
-                socket.shutdownOutput();
-
-                //获取服务器响应的数据
-                InputStream is = socket.getInputStream();
-                BufferedReader br = new BufferedReader(new InputStreamReader(is));
-                String s = br.readLine();
-                br.close();
-                socket.close();
-                if (!"false".equals(s)) {
-                    exists = true;
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            if (exists == flag) {
-                break;
+            if (!udv.idIsLicit(id)) {
+                System.out.println("学号输入有误，a-z,0-9");
             } else {
-                exists = false;
-                System.out.println("当前id不可用,请重新输入!");
+                //1. 拿socket
+                try {
+                    Socket socket = getSocket();
+                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                    bw.write("[5]," + id);
+                    bw.flush();
+                    socket.shutdownOutput();
+
+                    //获取服务器响应的数据
+                    InputStream is = socket.getInputStream();
+                    BufferedReader br = new BufferedReader(new InputStreamReader(is));
+                    String s = br.readLine();
+                    br.close();
+                    socket.close();
+                    if (!"false".equals(s)) {
+                        exists = true;
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (exists == flag) {
+                    break;
+                } else {
+                    exists = false;
+                    System.out.println("当前id不可用,请重新输入!");
+                }
             }
         }
         return id;
