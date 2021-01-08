@@ -1,12 +1,15 @@
 package xyz.itclay.managersystem.domain;
 
+import java.io.Serializable;
+
 /**
  * 学生类（学号、姓名、年龄、生日）
  *
  * @author ZhangSenmiao
  * @date 2021/1/7 20:08
  **/
-public class Student {
+public class Student implements Serializable {
+    private static final long serialVersionUID = 1;
     private String sid;
     private String name;
     private String age;

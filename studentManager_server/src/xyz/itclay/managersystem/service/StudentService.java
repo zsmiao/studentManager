@@ -9,16 +9,20 @@ import xyz.itclay.managersystem.factory.StudentDaoFactory;
  * @date 2021/1/7 20:55
  **/
 public class StudentService {
-    private BaseStudentDao dao = StudentDaoFactory.getStudentDao();
+    private BaseStudentDao dao = (BaseStudentDao) StudentDaoFactory.getBean("OtherStudentDao");
 
-    //业务员中的添加功能
+    /**
+     * 添加学生
+     */
     public boolean addStudent(Student stu) {
         //1. 创建一个库管对象,指挥库管对象将学生对象添加到数据仓库
         //2. 将库管添加之后返回的结果回传给业务员
         return dao.addStudent(stu);
     }
 
-    // 判断学号是否存在
+    /**
+     *判断学生是否存在
+     */
     public boolean isExists(String sid) {
         //1. 拿到系统中当前最新的所有学生信息: 指挥库管把数据仓库中现有的所有数据查出来
         Student[] stus = dao.findAllStudent();      // 1.{null,null,null,null,null},2. {stu,stu,null,null,null},3.{stu,stu,stu,stu,stu}
@@ -37,7 +41,9 @@ public class StudentService {
         return flag;
     }
 
-
+    /**
+     * 查看学生
+     */
     public Student[] findAllStudent() {
         //1. 指挥库管dao将仓库中所有数据都拿出来
         //1.1 stus= {null,null,null,null,null}      --> 期望: stus = null
@@ -64,5 +70,18 @@ public class StudentService {
 
     }
 
+    /**
+     * 删除学生
+     */
+    public void deleteStudent(String deleteId) {
+        dao.deleteStudent(deleteId);
+    }
+
+    /**
+     * 修改学生
+     */
+    public void updateStudent(String updateStudentId, Student newStudent) {
+        dao.updateStudent(updateStudentId, newStudent);
+    }
 }
 

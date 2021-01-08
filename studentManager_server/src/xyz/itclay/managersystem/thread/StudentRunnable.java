@@ -5,6 +5,7 @@ import xyz.itclay.managersystem.service.StudentService;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Arrays;
 
 /**
  * 处理学生业务的线程任务类
@@ -23,22 +24,25 @@ public class StudentRunnable implements Runnable {
     @Override
     public void run() {
         try {
-            //1. 取出本次socket会话中客户端传来的数据
+//          取出本次socket会话中客户端传来的数据
             InputStream is = socket.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String clientMsg = br.readLine();
             System.out.println("clientMsg = " + clientMsg);
 
-            //2. 解析客户端传输过来的报文数据
-            //[1],heima001,张三,23,1999-11-11
-            //[5],heima001
+//          解析客户端传输过来的报文数据
             String[] split = clientMsg.split(",");
-            //先解析出本次的操作指令
             String choice = split[0];
             switch (choice) {
                 case "[1]":
                     addStudent(split[1], split[2], split[3], split[4]);
                     break;
+                case "[2]":
+                    deleteStudent(split[1]);
+                    break;
+                case "[3]":
+                    Student student = new Student(split[2], split[3], split[4], split[5]);
+                    updateStudent(split[1], student);
                 case "[4]":
                     findAllStudent();
                     break;
@@ -55,16 +59,52 @@ public class StudentRunnable implements Runnable {
         }
     }
 
+    /**
+     * 修改学生
+     */
+    private void updateStudent(String updateStudentId, Student student) {
+        service.updateStudent(updateStudentId, student);
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            bw.write("修改成功！");
+            bw.flush();
+            bw.close();
+            socket.close();
+        } catch (Exception e) {
+            System.out.println("修改失败！");
+        }
+    }
+
+    /**
+     * 删除学生
+     */
+
+    private void deleteStudent(String deleteId) {
+        service.deleteStudent(deleteId);
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            bw.write("删除成功！");
+            bw.flush();
+            bw.close();
+            socket.close();
+        } catch (Exception e) {
+            System.out.println("删除失败！");
+        }
+    }
+
+    /**
+     * 查看学生
+     */
     private void findAllStudent() {
         Student[] stus = service.findAllStudent();
-
         if (stus == null) {
             try {
                 OutputStream os = socket.getOutputStream();
                 BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
                 String str = "false";
                 bw.write(str);
-                System.out.println(str);
                 bw.flush();
                 bw.close();
                 socket.close();
@@ -76,20 +116,19 @@ public class StudentRunnable implements Runnable {
                 OutputStream os = socket.getOutputStream();
                 BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
                 for (Student student : stus) {
-                    bw.write(student.toString());
-                    System.out.println(student.toString());
-                    bw.flush();
-                    bw.close();
-                    socket.shutdownOutput();
+                    bw.write(String.valueOf(student)+"、");
                 }
+                bw.flush();
+                bw.close();
+                socket.shutdownOutput();
             } catch (Exception e) {
-                e.printStackTrace();
             }
         }
     }
 
     /**
      * 判断id是否存在
+     *
      * @param sid
      */
     private void idIsExists(String sid) {
@@ -111,6 +150,7 @@ public class StudentRunnable implements Runnable {
 
     /**
      * 客服类中添加学生的方法
+     *
      * @param sid
      * @param name
      * @param age
@@ -130,7 +170,6 @@ public class StudentRunnable implements Runnable {
         try {
             OutputStream os = socket.getOutputStream();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-            System.out.println("*****");
             bw.write(resMsg);
             System.out.println(resMsg);
             bw.flush();
@@ -140,6 +179,5 @@ public class StudentRunnable implements Runnable {
             e.printStackTrace();
         }
     }
-
 }
 

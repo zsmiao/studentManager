@@ -18,7 +18,7 @@ public class ServerApplication {
     public static void main(String[] args) throws IOException {
 
         ExecutorService service = Executors.newFixedThreadPool(15);
-        ServerSocket serverSocket = new ServerSocket(9999);
+        ServerSocket serverSocket = new ServerSocket(9998);
         while (true) {
             Socket socket = serverSocket.accept();
             service.submit(new StudentRunnable(socket));
