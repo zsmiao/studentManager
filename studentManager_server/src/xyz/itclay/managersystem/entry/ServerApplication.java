@@ -1,6 +1,7 @@
 package xyz.itclay.managersystem.entry;
 
 import xyz.itclay.managersystem.thread.StudentRunnable;
+import xyz.itclay.managersystem.util.SystemTime;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -19,6 +20,8 @@ public class ServerApplication {
 
         ExecutorService service = Executors.newFixedThreadPool(15);
         ServerSocket serverSocket = new ServerSocket(9998);
+        SystemTime.nowSystemTime();
+        System.out.println("：服务器启动成功，等待用户连接.....");
         while (true) {
             Socket socket = serverSocket.accept();
             service.submit(new StudentRunnable(socket));

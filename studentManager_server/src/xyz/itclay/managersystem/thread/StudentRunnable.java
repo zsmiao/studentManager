@@ -2,10 +2,13 @@ package xyz.itclay.managersystem.thread;
 
 import xyz.itclay.managersystem.domain.Student;
 import xyz.itclay.managersystem.service.StudentService;
+import xyz.itclay.managersystem.util.SystemTime;
+import xyz.itclay.managersystem.util.UserLogin;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Properties;
 
 /**
  * 处理学生业务的线程任务类
@@ -16,6 +19,7 @@ import java.util.Arrays;
 public class StudentRunnable implements Runnable {
     private final StudentService service = new StudentService();
     private final Socket socket;
+    String loginUserName="";
 
     public StudentRunnable(Socket socket) {
         this.socket = socket;
@@ -28,12 +32,15 @@ public class StudentRunnable implements Runnable {
             InputStream is = socket.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String clientMsg = br.readLine();
-            System.out.println("clientMsg = " + clientMsg);
+
 
 //          解析客户端传输过来的报文数据
             String[] split = clientMsg.split(",");
             String choice = split[0];
             switch (choice) {
+                case "[0]":
+                    isUser(split[1], split[2]);
+                    break;
                 case "[1]":
                     addStudent(split[1], split[2], split[3], split[4]);
                     break;
@@ -50,7 +57,6 @@ public class StudentRunnable implements Runnable {
                     idIsExists(split[1]);
                     break;
                 default:
-                    System.out.println("您的输入有误, 请重新输入");
                     break;
             }
 
@@ -67,7 +73,10 @@ public class StudentRunnable implements Runnable {
         try {
             OutputStream os = socket.getOutputStream();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-            bw.write("修改成功！");
+            String str="修改成功！";
+            bw.write(str);
+            SystemTime.nowSystemTime();
+            System.out.println("：" + loginUserName + "用户修改学生：" + str+"学生信息为："+student.toString());
             bw.flush();
             bw.close();
             socket.close();
@@ -85,7 +94,10 @@ public class StudentRunnable implements Runnable {
         try {
             OutputStream os = socket.getOutputStream();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-            bw.write("删除成功！");
+            String str="删除成功！";
+            bw.write(str);
+            SystemTime.nowSystemTime();
+            System.out.println("：" + loginUserName + "用户删除学生：" + str+",学生学号为："+deleteId);
             bw.flush();
             bw.close();
             socket.close();
@@ -116,8 +128,10 @@ public class StudentRunnable implements Runnable {
                 OutputStream os = socket.getOutputStream();
                 BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
                 for (Student student : stus) {
-                    bw.write(String.valueOf(student)+"、");
+                    bw.write(String.valueOf(student) + "、");
                 }
+                SystemTime.nowSystemTime();
+                System.out.println("：" + loginUserName + "用户查看所有学生...");
                 bw.flush();
                 bw.close();
                 socket.shutdownOutput();
@@ -136,9 +150,7 @@ public class StudentRunnable implements Runnable {
         try {
             OutputStream os = socket.getOutputStream();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-            System.out.println("-----");
             bw.write(exists + "");
-            System.out.println(exists + "");
             bw.flush();
             bw.close();
             socket.close();
@@ -171,7 +183,36 @@ public class StudentRunnable implements Runnable {
             OutputStream os = socket.getOutputStream();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
             bw.write(resMsg);
-            System.out.println(resMsg);
+            SystemTime.nowSystemTime();
+            System.out.println("：" + loginUserName+ "用户添加学生：" + resMsg + ",学生信息为："+stu.toString());
+            bw.flush();
+            bw.close();
+            socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void isUser(String user, String password) throws IOException {
+        String hostAddress = socket.getInetAddress().getHostAddress();
+        Properties properties = new Properties();
+        FileReader fileReader = new FileReader("studentManager_server\\user.txt");
+        properties.load(fileReader);
+        String username = properties.getProperty("username");
+        String password1 = properties.getProperty("password");
+        String resMsg = "";
+        if (user.equals(username) && password.equals(password1)) {
+            resMsg = "登录成功";
+        } else {
+            resMsg = "登录失败";
+        }
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            bw.write(resMsg);
+            SystemTime.nowSystemTime();
+            System.out.println("：" + username + "用户" + resMsg + ",IP为:" + hostAddress);
+            loginUserName=user;
             bw.flush();
             bw.close();
             socket.close();

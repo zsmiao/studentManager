@@ -6,7 +6,6 @@ import xyz.itclay.managersystem.util.UserDataVerification;
 
 import java.io.*;
 import java.net.Socket;
-import java.text.ParseException;
 import java.util.Scanner;
 
 /**
@@ -167,6 +166,9 @@ public class StudentController {
 
     }
 
+    /**
+     * 录入学生信息
+     */
     public Student inputStudentInfo(String sid) {
         Student stu = new Student();
         while (true) {
@@ -181,7 +183,6 @@ public class StudentController {
                     //根据生日,计算年龄
                     String age = DateUtil.getAge(birthday);
 
-
                     stu.setSid(sid);
                     stu.setName(name);
                     stu.setAge(age);
@@ -195,7 +196,6 @@ public class StudentController {
         return stu;
     }
 
-
     /**
      * 判断学号是否可用
      */
@@ -205,7 +205,7 @@ public class StudentController {
         while (true) {
             id = scanner.next();
             if (!udv.idIsLicit(id)) {
-                System.out.println("学号输入有误，a-z,0-9");
+                System.out.println("学号输入有误，示例：heima001");
             } else {
                 //1. 拿socket
                 try {
@@ -239,7 +239,7 @@ public class StudentController {
         return id;
     }
 
-    private Socket getSocket() {
+    public static Socket getSocket() {
         Socket socket = null;
         try {
             socket = new Socket("127.0.0.1", 9998);

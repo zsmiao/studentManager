@@ -49,7 +49,6 @@ public class UserDataVerification {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        System.out.println(inputTime);
         if (inputTime < currentTime) {
             flag = true;
         }

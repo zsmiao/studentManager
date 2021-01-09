@@ -21,11 +21,11 @@ public class StudentService {
     }
 
     /**
-     *判断学生是否存在
+     * 判断学生是否存在
      */
     public boolean isExists(String sid) {
         //1. 拿到系统中当前最新的所有学生信息: 指挥库管把数据仓库中现有的所有数据查出来
-        Student[] stus = dao.findAllStudent();      // 1.{null,null,null,null,null},2. {stu,stu,null,null,null},3.{stu,stu,stu,stu,stu}
+        Student[] stus = dao.findAllStudent();
         // 标记位: 先假设当前学号不存在: flag = false
         boolean flag = false;
 
@@ -33,7 +33,7 @@ public class StudentService {
         for (int i = 0; i < stus.length; i++) {
             // 只有当前索引位置的元素不为null,并且当前索引位置的学生对象的学号和传进来的学号内容相等
             if (stus[i] != null && stus[i].getSid().equals(sid)) {
-                flag = true;        // 修改标记位true
+                flag = true;
                 break;
             }
         }
@@ -45,27 +45,17 @@ public class StudentService {
      * 查看学生
      */
     public Student[] findAllStudent() {
-        //1. 指挥库管dao将仓库中所有数据都拿出来
-        //1.1 stus= {null,null,null,null,null}      --> 期望: stus = null
-        //1.2 stus = {stu,null,null,null,null}
-        //1.3 stus = {stu,stu,stu,stu,stu,stu}
         Student[] stus = dao.findAllStudent();
-
-        //标记位: 先假设stus中一个学生都没有
         boolean flag = false;
-
         for (int i = 0; i < stus.length; i++) {
             if (stus[i] != null) {
                 flag = true;
             }
         }
-
-        // 根据flag的值来判断stus中有没有学生
         if (flag) {
-            // 有学生,返回整个dao传过来的数组: 有地址的数组
             return stus;
         } else {
-            return null;    // 没学生,直接返回null
+            return null;
         }
 
     }
