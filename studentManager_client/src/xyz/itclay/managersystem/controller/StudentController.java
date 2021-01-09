@@ -13,8 +13,8 @@ import java.util.Scanner;
  * @date 2021/1/7 20:22
  **/
 public class StudentController {
-    Scanner scanner = new Scanner(System.in);
-    UserDataVerification udv = new UserDataVerification();
+    static Scanner scanner = new Scanner(System.in);
+    static UserDataVerification udv = new UserDataVerification();
 
     /**
      * 学生信息管理菜单
@@ -199,7 +199,7 @@ public class StudentController {
     /**
      * 判断学号是否可用
      */
-    public String inputId(boolean flag) {
+    public static String inputId(boolean flag) {
         String id;
         boolean exists = false;
         while (true) {

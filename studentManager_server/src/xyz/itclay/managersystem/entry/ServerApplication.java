@@ -1,5 +1,6 @@
 package xyz.itclay.managersystem.entry;
 
+import xyz.itclay.managersystem.thread.GrandRunnable;
 import xyz.itclay.managersystem.thread.StudentRunnable;
 import xyz.itclay.managersystem.util.SystemTime;
 

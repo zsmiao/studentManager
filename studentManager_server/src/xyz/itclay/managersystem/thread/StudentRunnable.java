@@ -1,13 +1,12 @@
 package xyz.itclay.managersystem.thread;
 
 import xyz.itclay.managersystem.domain.Student;
+import xyz.itclay.managersystem.service.GrandService;
 import xyz.itclay.managersystem.service.StudentService;
 import xyz.itclay.managersystem.util.SystemTime;
-import xyz.itclay.managersystem.util.UserLogin;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -18,8 +17,9 @@ import java.util.Properties;
  **/
 public class StudentRunnable implements Runnable {
     private final StudentService service = new StudentService();
+    private final GrandService grandService=new GrandService();
     private final Socket socket;
-    String loginUserName="";
+    String loginUserName = "";
 
     public StudentRunnable(Socket socket) {
         this.socket = socket;
@@ -56,6 +56,9 @@ public class StudentRunnable implements Runnable {
                 case "[5]":
                     idIsExists(split[1]);
                     break;
+                case "[6]":
+                    addGrand(split[1]);
+                    break;
                 default:
                     break;
             }
@@ -66,6 +69,14 @@ public class StudentRunnable implements Runnable {
     }
 
     /**
+     * 添加学生成绩
+     */
+
+    private void addGrand(String sid) {
+        returnName(sid);
+    }
+
+    /**
      * 修改学生
      */
     private void updateStudent(String updateStudentId, Student student) {
@@ -73,10 +84,10 @@ public class StudentRunnable implements Runnable {
         try {
             OutputStream os = socket.getOutputStream();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-            String str="修改成功！";
+            String str = "修改成功！";
             bw.write(str);
             SystemTime.nowSystemTime();
-            System.out.println("：" + loginUserName + "用户修改学生：" + str+"学生信息为："+student.toString());
+            System.out.println("：" + loginUserName + "用户修改学生：" + str + "学生信息为：" + student.toString());
             bw.flush();
             bw.close();
             socket.close();
@@ -94,10 +105,10 @@ public class StudentRunnable implements Runnable {
         try {
             OutputStream os = socket.getOutputStream();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-            String str="删除成功！";
+            String str = "删除成功！";
             bw.write(str);
             SystemTime.nowSystemTime();
-            System.out.println("：" + loginUserName + "用户删除学生：" + str+",学生学号为："+deleteId);
+            System.out.println("：" + loginUserName + "用户删除学生：" + str + ",学生学号为：" + deleteId);
             bw.flush();
             bw.close();
             socket.close();
@@ -173,7 +184,6 @@ public class StudentRunnable implements Runnable {
         Student stu = new Student(sid, name, age, birthday);
 
         boolean res = service.addStudent(stu);
-
         //3. 根据业务员返回的结果,给出对应的提示信息展示给用户
         String resMsg = "添加成功";
         if (!res) {
@@ -184,7 +194,7 @@ public class StudentRunnable implements Runnable {
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
             bw.write(resMsg);
             SystemTime.nowSystemTime();
-            System.out.println("：" + loginUserName+ "用户添加学生：" + resMsg + ",学生信息为："+stu.toString());
+            System.out.println("：" + loginUserName + "用户添加学生：" + resMsg + ",学生信息为：" + stu.toString());
             bw.flush();
             bw.close();
             socket.close();
@@ -212,7 +222,25 @@ public class StudentRunnable implements Runnable {
             bw.write(resMsg);
             SystemTime.nowSystemTime();
             System.out.println("：" + username + "用户" + resMsg + ",IP为:" + hostAddress);
-            loginUserName=user;
+            loginUserName = user;
+            bw.flush();
+            bw.close();
+            socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 根据学号，在数据库中查询，返回学生姓名
+     * @param sid
+     */
+    public void returnName(String sid){
+        String name=grandService.returnName(sid);
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            bw.write(name);
             bw.flush();
             bw.close();
             socket.close();

@@ -22,6 +22,8 @@ public class OtherStudentDao implements BaseStudentDao {
     public void deleteStudent(String deleteId) {
         int index = getIndex(deleteId);
         studentArray.remove(index);
+        //删除学生信息的时候，根据学生的学号在数据库中删除学生的信息
+        GrandDao.remove(deleteId);
     }
 
     @Override
@@ -45,6 +47,7 @@ public class OtherStudentDao implements BaseStudentDao {
     @Override
     public boolean addStudent(Student student) {
         studentArray.add(student);
+        GrandDao.addStudentInfo(student.getSid(), student.getName());
         reSave01();
         return true;
     }
@@ -59,6 +62,7 @@ public class OtherStudentDao implements BaseStudentDao {
     public void updateStudent(String updateStudentId, Student newStudent) {
         int index = getIndex(updateStudentId);
         studentArray.set(index, newStudent);
+        GrandDao.update(newStudent.getSid(),newStudent.getName());
     }
 
 

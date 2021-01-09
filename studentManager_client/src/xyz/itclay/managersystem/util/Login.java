@@ -1,5 +1,6 @@
 package xyz.itclay.managersystem.util;
 
+import xyz.itclay.managersystem.controller.GrandeController;
 import xyz.itclay.managersystem.controller.StudentController;
 
 import java.io.*;
@@ -74,6 +75,8 @@ public class Login {
                     studentController.start();
                     break;
                 case "2":
+                    System.out.println("学生成绩管理系统");
+                   GrandeController.start();
                     break;
                 case "3":
                     System.exit(0);
