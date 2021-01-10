@@ -16,9 +16,78 @@ import java.util.Scanner;
  * @date 2021/1/8 12:59
  **/
 public class Login {
+    static Scanner scanner = new Scanner(System.in);
 
-    public static void userLogin(){
-        Scanner scanner = new Scanner(System.in);
+    public static void userLogin() {
+
+        System.out.println("**********黑马信息管理系统*********");
+        while (true) {
+            System.out.println("请选择您的登录身份:");
+            System.out.println("1.管理员登录     2.学生登录");
+            String choice = scanner.next();
+            switch (choice) {
+                case "1":
+                    rootLogin();
+                    break;
+                case "2":
+                    studentLogin();
+                    break;
+                default:
+                    System.out.println("您的选择有误，请您重新选择！");
+            }
+        }
+    }
+
+    /**
+     * 学生登录
+     */
+    private static void studentLogin() {
+        int count = 3;
+        while (true) {
+            System.out.println("请输入学号:");
+            String sid = scanner.next();
+            System.out.println("请输入密码:");
+            String password = scanner.next();
+            verificationCode();
+            Socket socket = StudentController.getSocket();
+            try {
+                OutputStream os = socket.getOutputStream();
+                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+                bw.write("[0]," + sid + "," + password);
+                bw.flush();
+                socket.shutdownOutput();
+
+                //等着接收服务器响应
+                InputStream is = socket.getInputStream();
+                BufferedReader br = new BufferedReader(new InputStreamReader(is));
+                String s = br.readLine();
+                if ("登录成功".equals(s)) {
+                    System.out.println(s + ",欢迎您！" + sid);
+                    System.out.print("当前登录时间为：");
+                    SystemTime.nowSystemTime();
+                    menu();
+                } else {
+                    System.out.println("用户名或密码错误！,您还有" + (count - 1) + "次机会！");
+                    count--;
+                    if (count == 0) {
+                        System.out.println("登录次数超限，请稍后再试！");
+                        break;
+                    }
+                }
+                //释放资源
+                br.close();
+                socket.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    /**
+     * 管理员登录
+     */
+    private static void rootLogin() {
         int count = 3;
         while (true) {
             System.out.println("请输入用户名:");
@@ -30,7 +99,7 @@ public class Login {
             try {
                 OutputStream os = socket.getOutputStream();
                 BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-                bw.write("[0],"+user+","+password);
+                bw.write("[0]," + user + "," + password);
                 bw.flush();
                 socket.shutdownOutput();
 
@@ -38,12 +107,12 @@ public class Login {
                 InputStream is = socket.getInputStream();
                 BufferedReader br = new BufferedReader(new InputStreamReader(is));
                 String s = br.readLine();
-                if ("登录成功".equals(s)){
-                    System.out.println(s+",欢迎您！"+user);
+                if ("登录成功".equals(s)) {
+                    System.out.println(s + ",欢迎您！" + user);
                     System.out.print("当前登录时间为：");
                     SystemTime.nowSystemTime();
                     menu();
-                }else {
+                } else {
                     System.out.println("用户名或密码错误！,您还有" + (count - 1) + "次机会！");
                     count--;
                     if (count == 0) {
@@ -76,7 +145,7 @@ public class Login {
                     break;
                 case "2":
                     System.out.println("学生成绩管理系统");
-                   GrandeController.start();
+                    GrandeController.start();
                     break;
                 case "3":
                     System.exit(0);
@@ -112,6 +181,33 @@ public class Login {
                 break;
             } else {
                 System.out.println("输入错误，请重新输入...");
+            }
+        }
+    }
+
+    /**
+     * 学生主菜单
+     */
+    public static void studentMenu() {
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            System.out.println("——————————欢迎来到黑马学生信息管理系统——————————");
+            System.out.println("请输入您的选择：1.成绩查询  2.个人信息查询  3.修改密码  0.退出");
+            String choice = scanner.next();
+            switch (choice) {
+                case "1":
+                    break;
+                case "2":
+                    System.out.println("学生成绩管理系统");
+                    break;
+                case "3":
+                    System.out.println("修改密码");
+                    break;
+                case "0":
+                    System.exit(0);
+                default:
+                    System.out.println("您的输入有误，请重新输入！");
+                    break;
             }
         }
     }

@@ -16,6 +16,7 @@ import java.net.Socket;
 import java.util.List;
 import java.util.Properties;
 
+
 /**
  * 处理学生业务的线程任务类
  *
@@ -40,7 +41,7 @@ public class StudentRunnable implements Runnable {
             InputStream is = socket.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             String clientMsg = br.readLine();
-
+            LOGGER.info("客户端信息:" + clientMsg);
 
 //          解析客户端传输过来的报文数据
             String[] split = clientMsg.split(",");
@@ -58,6 +59,7 @@ public class StudentRunnable implements Runnable {
                 case "[3]":
                     Student student = new Student(split[2], split[3], split[4], split[5]);
                     updateStudent(split[1], student);
+                    break;
                 case "[4]":
                     findAllStudent();
                     break;
@@ -68,9 +70,7 @@ public class StudentRunnable implements Runnable {
                     addGrand(split[1]);
                     break;
                 case "[7]":
-                    Grande grande = new Grande(split[1], Integer.parseInt(split[2]),
-                            Integer.parseInt(split[3]),
-                            Integer.parseInt(split[4]));
+                    Grande grande = new Grande(split[1], Integer.parseInt(split[2]), Integer.parseInt(split[3]), Integer.parseInt(split[4]));
                     addGrand(grande);
                     break;
                 case "[8]":
@@ -79,6 +79,9 @@ public class StudentRunnable implements Runnable {
                 case "[9]":
                     showAll();
                     break;
+                case "[10]":
+                    isStudent(split[1], split[2]);
+                    break;
                 default:
                     break;
             }
@@ -86,6 +89,13 @@ public class StudentRunnable implements Runnable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 判断学生登录
+     */
+    private void isStudent(String s, String s1) {
+
     }
 
     /**
@@ -115,14 +125,12 @@ public class StudentRunnable implements Runnable {
                 }
                 LOGGER.info(loginUserName + "用户查看所有学生的成绩...");
                 bw.flush();
-               // bw.close();
                 socket.shutdownOutput();
             } catch (Exception e) {
                 LOGGER.error("查看学生失败" + e);
             }
         }
     }
-
 
     /**
      * 删除学生成绩
@@ -296,6 +304,9 @@ public class StudentRunnable implements Runnable {
         }
     }
 
+    /**
+     * 判断用户登录
+     */
     public void isUser(String user, String password) throws IOException {
         InetAddress address = socket.getInetAddress();
         String hostAddress = address.getHostAddress();

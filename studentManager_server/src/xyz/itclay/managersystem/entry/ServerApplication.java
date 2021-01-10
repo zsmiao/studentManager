@@ -2,14 +2,11 @@ package xyz.itclay.managersystem.entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xyz.itclay.managersystem.dao.GrandDao;
 import xyz.itclay.managersystem.thread.StudentRunnable;
-import xyz.itclay.managersystem.util.SystemTime;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.sql.SQLException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

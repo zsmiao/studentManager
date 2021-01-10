@@ -16,7 +16,6 @@ public class GrandService {
     GrandDao grandDao = new GrandDao();
     private BaseStudentDao dao = (BaseStudentDao) StudentDaoFactory.getBean("OtherStudentDao");
 
-
     public String returnName(String sid) {
         return grandDao.findName(sid);
     }

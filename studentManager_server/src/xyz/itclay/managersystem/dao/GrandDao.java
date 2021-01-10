@@ -23,6 +23,8 @@ public class GrandDao {
     private static final String FIND_NAME = "select Student_Name from tb_Grandes where Student_Id=?";
     private static final String ADD_GRAND = "update tb_Grandes set Student_C=?,Student_Java=?,Student_Network=? where Student_Id=?";
     private static final String FIND_STUDENT_RESULT = "select * from tb_Grandes";
+    private static final String ADD_USER = "insert into tb_User(User_Name,Password) values (?,?)";
+    private static final String USER_LOGIN = " select  * from  tb_User WHERE User_Name=? and Password=?";
     public static Connection conn;
 
     static {
@@ -42,9 +44,8 @@ public class GrandDao {
 
     /**
      * 查询学生信息，装进集合中，返回集合
-     *
      */
-    public List<StudentResult> showAll()  {
+    public List<StudentResult> showAll() {
         List<StudentResult> listTest = new ArrayList<>();
         try {
             PreparedStatement ps = conn.prepareStatement(FIND_STUDENT_RESULT);
@@ -60,7 +61,7 @@ public class GrandDao {
             }
             resultSet.close();
         } catch (SQLException throwables) {
-           LOGGER.error("数据库异常！"+throwables);
+            LOGGER.error("数据库异常！" + throwables);
         }
         return listTest;
     }
@@ -74,12 +75,32 @@ public class GrandDao {
             ps.setString(1, sid);
             ps.setString(2, name);
             if (ps.executeUpdate() > 0) {
+                addUser(sid);
                 LOGGER.info("添加学生信息成功！学生信息为:" + sid + name);
             } else {
                 LOGGER.info("添加学生信息失败！学生信息为:" + sid + name);
             }
         } catch (SQLException throwables) {
             LOGGER.error("添加学生数据库异常" + throwables);
+        }
+    }
+
+    /**
+     *以学生的学号作为账号和密码，同步到数据库的tb_User表中
+     */
+
+    public static void addUser(String sid) {
+        try {
+            PreparedStatement ps = conn.prepareStatement(ADD_USER);
+            ps.setString(1, sid);
+            ps.setString(2, sid);
+            if (ps.executeUpdate() > 0) {
+                LOGGER.info("同步学生账号成功!" + sid);
+            } else {
+                LOGGER.info("同步学生账号失败!" + sid);
+            }
+        } catch (SQLException throwables) {
+            LOGGER.error("同步学生账号失败!数据库异常！" + throwables);
         }
     }
 
@@ -126,8 +147,6 @@ public class GrandDao {
 
     /**
      * 根据学生学号，查询学生姓名，并返回
-     *
-     * @param sid
      */
     public String findName(String sid) {
         String name = "";
@@ -147,9 +166,6 @@ public class GrandDao {
 
     /**
      * 添加学生成绩
-     *
-     * @param grande
-     * @return
      */
     public Boolean addGrand(Grande grande) {
         boolean flag = false;
