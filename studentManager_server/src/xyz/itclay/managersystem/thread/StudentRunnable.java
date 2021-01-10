@@ -1,13 +1,19 @@
 package xyz.itclay.managersystem.thread;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import xyz.itclay.managersystem.domain.Grande;
 import xyz.itclay.managersystem.domain.Student;
+import xyz.itclay.managersystem.domain.StudentResult;
+import xyz.itclay.managersystem.entry.ServerApplication;
 import xyz.itclay.managersystem.service.GrandService;
 import xyz.itclay.managersystem.service.StudentService;
 import xyz.itclay.managersystem.util.SystemTime;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -17,6 +23,7 @@ import java.util.Properties;
  * @date 2021/1/7 20:47
  **/
 public class StudentRunnable implements Runnable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerApplication.class);
     private final StudentService service = new StudentService();
     private final GrandService grandService = new GrandService();
     private final Socket socket;
@@ -66,12 +73,79 @@ public class StudentRunnable implements Runnable {
                             Integer.parseInt(split[4]));
                     addGrand(grande);
                     break;
+                case "[8]":
+                    deleteGrand(split[1]);
+                    break;
+                case "[9]":
+                    showAll();
+                    break;
                 default:
                     break;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * 查询学生成绩
+     */
+    private void showAll() {
+        List<StudentResult> list = grandService.showAll();
+        if (list.size() == 0) {
+            try {
+                OutputStream os = socket.getOutputStream();
+                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+                String str = "false";
+                bw.write(str);
+                bw.flush();
+                bw.close();
+                socket.close();
+            } catch (Exception e) {
+                LOGGER.error("连接异常" + e);
+            }
+        } else {
+            try {
+                OutputStream os = socket.getOutputStream();
+                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+                for (StudentResult studentResult : list) {
+                    bw.write(String.valueOf(studentResult) + "、");
+                    System.out.println(studentResult.toString());
+                }
+                LOGGER.info(loginUserName + "用户查看所有学生的成绩...");
+                bw.flush();
+               // bw.close();
+                socket.shutdownOutput();
+            } catch (Exception e) {
+                LOGGER.error("查看学生失败" + e);
+            }
+        }
+    }
+
+
+    /**
+     * 删除学生成绩
+     */
+    private void deleteGrand(String sid) {
+        boolean result = grandService.deleteGrand(sid);
+        String str = "";
+        if (result) {
+            str = "删除成功";
+        } else {
+            str = "删除失败";
+        }
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            bw.write(str);
+            SystemTime.nowSystemTime();
+            System.out.println("：" + loginUserName + "用户删除学生成绩：" + str + ",学生学号为：" + sid);
+            bw.flush();
+            bw.close();
+            socket.close();
+        } catch (Exception e) {
+            System.out.println("删除失败！");
         }
     }
 
@@ -95,6 +169,7 @@ public class StudentRunnable implements Runnable {
             bw.write(resMsg);
             SystemTime.nowSystemTime();
             System.out.println("：" + loginUserName + "用户添加学生成绩：" + resMsg + ",学生成绩为：" + grande.toString());
+            LOGGER.info(loginUserName + "用户添加学生成绩：" + resMsg + ",学生成绩为：" + grande.toString());
             bw.flush();
             bw.close();
             socket.close();
@@ -113,13 +188,12 @@ public class StudentRunnable implements Runnable {
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
             String str = "修改成功！";
             bw.write(str);
-            SystemTime.nowSystemTime();
-            System.out.println("：" + loginUserName + "用户修改学生：" + str + "学生信息为：" + student.toString());
+            LOGGER.info(loginUserName + "用户修改学生：" + str + "学生信息为：" + student.toString());
             bw.flush();
             bw.close();
             socket.close();
         } catch (Exception e) {
-            System.out.println("修改失败！");
+            LOGGER.error("用户修改学生信息失败" + e);
         }
     }
 
@@ -135,7 +209,7 @@ public class StudentRunnable implements Runnable {
             String str = "删除成功！";
             bw.write(str);
             SystemTime.nowSystemTime();
-            System.out.println("：" + loginUserName + "用户删除学生：" + str + ",学生学号为：" + deleteId);
+            LOGGER.info(loginUserName + "用户删除学生：" + str + ",学生学号为：" + deleteId);
             bw.flush();
             bw.close();
             socket.close();
@@ -168,20 +242,18 @@ public class StudentRunnable implements Runnable {
                 for (Student student : stus) {
                     bw.write(String.valueOf(student) + "、");
                 }
-                SystemTime.nowSystemTime();
-                System.out.println("：" + loginUserName + "用户查看所有学生...");
+                LOGGER.info(loginUserName + "用户查看所有学生...");
                 bw.flush();
                 bw.close();
                 socket.shutdownOutput();
             } catch (Exception e) {
+                LOGGER.error("查看学生失败" + e);
             }
         }
     }
 
     /**
      * 判断id是否存在
-     *
-     * @param sid
      */
     private void idIsExists(String sid) {
         boolean exists = service.isExists(sid);
@@ -197,14 +269,8 @@ public class StudentRunnable implements Runnable {
         }
     }
 
-
     /**
      * 客服类中添加学生的方法
-     *
-     * @param sid
-     * @param name
-     * @param age
-     * @param birthday
      */
     public void addStudent(String sid, String name, String age, String birthday) {
         //1. 封装学生对象
@@ -221,7 +287,7 @@ public class StudentRunnable implements Runnable {
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
             bw.write(resMsg);
             SystemTime.nowSystemTime();
-            System.out.println("：" + loginUserName + "用户添加学生：" + resMsg + ",学生信息为：" + stu.toString());
+            LOGGER.info(loginUserName + "用户添加学生：" + resMsg + ",学生信息为：" + stu.toString());
             bw.flush();
             bw.close();
             socket.close();
@@ -231,7 +297,9 @@ public class StudentRunnable implements Runnable {
     }
 
     public void isUser(String user, String password) throws IOException {
-        String hostAddress = socket.getInetAddress().getHostAddress();
+        InetAddress address = socket.getInetAddress();
+        String hostAddress = address.getHostAddress();
+        int port = socket.getLocalPort();
         Properties properties = new Properties();
         FileReader fileReader = new FileReader("studentManager_server\\user.txt");
         properties.load(fileReader);
@@ -247,8 +315,7 @@ public class StudentRunnable implements Runnable {
             OutputStream os = socket.getOutputStream();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
             bw.write(resMsg);
-            SystemTime.nowSystemTime();
-            System.out.println("：" + username + "用户" + resMsg + ",IP为:" + hostAddress);
+            LOGGER.info(username + "用户" + resMsg + ",IP为:" + hostAddress + ":" + port);
             loginUserName = user;
             bw.flush();
             bw.close();
@@ -260,8 +327,6 @@ public class StudentRunnable implements Runnable {
 
     /**
      * 根据学号，在数据库中查询，返回学生姓名
-     *
-     * @param sid
      */
     public void returnName(String sid) {
         String name = grandService.returnName(sid);

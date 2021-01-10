@@ -1,26 +1,30 @@
 package xyz.itclay.managersystem.dao;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import xyz.itclay.managersystem.domain.Grande;
+import xyz.itclay.managersystem.domain.StudentResult;
+import xyz.itclay.managersystem.entry.ServerApplication;
 import xyz.itclay.managersystem.util.PropertiesUtil;
-import xyz.itclay.managersystem.util.SystemTime;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author ZhangSenmiao
  * @date 2021/1/9 16:56
  **/
 public class GrandDao {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServerApplication.class);
     private static final String ADD_STUDENT = "insert into tb_Grandes(Student_Id,Student_Name) values (?,?)";
     private static final String DELETE_STUDENT = "delete from tb_Grandes where Student_Id=?";
     private static final String UPDATE_STUDENT = "update tb_Grandes set Student_Name=? where Student_Id=?";
     private static final String FIND_NAME = "select Student_Name from tb_Grandes where Student_Id=?";
     private static final String ADD_GRAND = "update tb_Grandes set Student_C=?,Student_Java=?,Student_Network=? where Student_Id=?";
+    private static final String FIND_STUDENT_RESULT = "select * from tb_Grandes";
     public static Connection conn;
 
-    /**
-     * 连接数据库
-     */
     static {
         try {
             String driver = PropertiesUtil.drive().getProperty("DRIVER");
@@ -29,13 +33,36 @@ public class GrandDao {
             String pwd = PropertiesUtil.drive().getProperty("PWD");
             Class.forName(driver);
             conn = DriverManager.getConnection(url, user, pwd);
-            SystemTime.nowSystemTime();
-            System.out.println("：数据库连接成功!");
+            LOGGER.info("数据库连接成功!");
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("：数据库连接失败！");
+            LOGGER.error("数据库连接失败!");
         }
 
+    }
+
+    /**
+     * 查询学生信息，装进集合中，返回集合
+     *
+     */
+    public List<StudentResult> showAll()  {
+        List<StudentResult> listTest = new ArrayList<>();
+        try {
+            PreparedStatement ps = conn.prepareStatement(FIND_STUDENT_RESULT);
+            ResultSet resultSet = ps.executeQuery();
+            while (resultSet.next()) {
+                StudentResult sr = new StudentResult();
+                sr.setSid(resultSet.getString(1));
+                sr.setName(resultSet.getString(2));
+                sr.setC(Integer.parseInt(resultSet.getString(3)));
+                sr.setJava(Integer.parseInt(resultSet.getString(4)));
+                sr.setNetwork(Integer.parseInt(resultSet.getString(5)));
+                listTest.add(sr);
+            }
+            resultSet.close();
+        } catch (SQLException throwables) {
+           LOGGER.error("数据库异常！"+throwables);
+        }
+        return listTest;
     }
 
     /**
@@ -47,14 +74,12 @@ public class GrandDao {
             ps.setString(1, sid);
             ps.setString(2, name);
             if (ps.executeUpdate() > 0) {
-                SystemTime.nowSystemTime();
-                System.out.println("：添加学生信息成功！学生信息为:" + sid + name);
+                LOGGER.info("添加学生信息成功！学生信息为:" + sid + name);
             } else {
-                SystemTime.nowSystemTime();
-                System.out.println("：添加学生信息到数据库失败！");
+                LOGGER.info("添加学生信息失败！学生信息为:" + sid + name);
             }
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error("添加学生数据库异常" + throwables);
         }
     }
 
@@ -62,20 +87,21 @@ public class GrandDao {
      * 删除学生信息,根据学生学号
      */
 
-    public static void remove(String sid) {
+    public Boolean remove(String sid) {
+        boolean flag = false;
         try {
             PreparedStatement ps = conn.prepareStatement(DELETE_STUDENT);
             ps.setString(1, sid);
             if (ps.executeUpdate() > 0) {
-                SystemTime.nowSystemTime();
-                System.out.println("：删除学生信息成功！学生学号为:" + sid);
+                flag = true;
+                LOGGER.info("删除学生信息成功！学生学号为:" + sid);
             } else {
-                SystemTime.nowSystemTime();
-                System.out.println("：删除学生信息失败！学生的学号为：" + sid);
+                LOGGER.info("删除学生信息失败！学生学号为:" + sid);
             }
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error("数据库删除学生异常:" + throwables);
         }
+        return flag;
     }
 
     /**
@@ -88,14 +114,12 @@ public class GrandDao {
             ps.setString(2, sid);
             ps.setString(1, name);
             if (ps.executeUpdate() > 0) {
-                SystemTime.nowSystemTime();
-                System.out.println("：修改数据库学生信息成功！修改的学生信息为:" + sid);
+                LOGGER.info("修改数据库学生信息成功！修改的学生信息为:" + sid);
             } else {
-                SystemTime.nowSystemTime();
-                System.out.println("：修改学生信息失败！");
+                LOGGER.info("修改学生信息失败！" + sid);
             }
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error("数据库修改学生异常:" + throwables);
         }
 
     }
@@ -104,7 +128,6 @@ public class GrandDao {
      * 根据学生学号，查询学生姓名，并返回
      *
      * @param sid
-     * @return
      */
     public String findName(String sid) {
         String name = "";
@@ -117,7 +140,7 @@ public class GrandDao {
             }
             resultSet.close();
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.info("数据库异常" + throwables);
         }
         return name;
     }
@@ -128,8 +151,8 @@ public class GrandDao {
      * @param grande
      * @return
      */
-    public boolean addGrand(Grande grande) {
-        Boolean flag = false;
+    public Boolean addGrand(Grande grande) {
+        boolean flag = false;
         try {
             PreparedStatement ps = conn.prepareStatement(ADD_GRAND);
             ps.setString(4, grande.getSid());
@@ -137,16 +160,13 @@ public class GrandDao {
             ps.setString(2, String.valueOf(grande.getJava()));
             ps.setString(3, String.valueOf(grande.getNetwork()));
             if (ps.executeUpdate() > 0) {
-                SystemTime.nowSystemTime();
-                System.out.println("：添加学生成绩成功！学生成绩为:" + grande.toString());
+                LOGGER.info("添加学生成绩成功！学生成绩为:" + grande.toString());
                 flag = true;
             } else {
-                SystemTime.nowSystemTime();
-                System.out.println("：添加学生信息到数据库失败！");
-
+                LOGGER.info("添加学生成绩失败！");
             }
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            LOGGER.error("数据库异常" + throwables);
         }
         return flag;
     }

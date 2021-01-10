@@ -13,7 +13,7 @@ import java.util.ArrayList;
 public class OtherStudentDao implements BaseStudentDao {
 
     private static ArrayList<Student> studentArray = new ArrayList<>();
-
+    GrandDao grandDao=new GrandDao();
     static {
         reload();
     }
@@ -23,7 +23,7 @@ public class OtherStudentDao implements BaseStudentDao {
         int index = getIndex(deleteId);
         studentArray.remove(index);
         //删除学生信息的时候，根据学生的学号在数据库中删除学生的信息
-        GrandDao.remove(deleteId);
+       grandDao.remove(deleteId);
     }
 
     @Override
