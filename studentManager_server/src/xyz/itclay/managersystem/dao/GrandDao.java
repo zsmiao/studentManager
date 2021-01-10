@@ -1,5 +1,6 @@
 package xyz.itclay.managersystem.dao;
 
+import xyz.itclay.managersystem.domain.Grande;
 import xyz.itclay.managersystem.util.PropertiesUtil;
 import xyz.itclay.managersystem.util.SystemTime;
 
@@ -14,6 +15,7 @@ public class GrandDao {
     private static final String DELETE_STUDENT = "delete from tb_Grandes where Student_Id=?";
     private static final String UPDATE_STUDENT = "update tb_Grandes set Student_Name=? where Student_Id=?";
     private static final String FIND_NAME = "select Student_Name from tb_Grandes where Student_Id=?";
+    private static final String ADD_GRAND = "update tb_Grandes set Student_C=?,Student_Java=?,Student_Network=? where Student_Id=?";
     public static Connection conn;
 
     /**
@@ -110,7 +112,7 @@ public class GrandDao {
             PreparedStatement ps = conn.prepareStatement(FIND_NAME);
             ps.setString(1, sid);
             ResultSet resultSet = ps.executeQuery();
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 name = resultSet.getString(1);
             }
             resultSet.close();
@@ -118,5 +120,34 @@ public class GrandDao {
             throwables.printStackTrace();
         }
         return name;
+    }
+
+    /**
+     * 添加学生成绩
+     *
+     * @param grande
+     * @return
+     */
+    public boolean addGrand(Grande grande) {
+        Boolean flag = false;
+        try {
+            PreparedStatement ps = conn.prepareStatement(ADD_GRAND);
+            ps.setString(4, grande.getSid());
+            ps.setString(1, String.valueOf(grande.getC()));
+            ps.setString(2, String.valueOf(grande.getJava()));
+            ps.setString(3, String.valueOf(grande.getNetwork()));
+            if (ps.executeUpdate() > 0) {
+                SystemTime.nowSystemTime();
+                System.out.println("：添加学生成绩成功！学生成绩为:" + grande.toString());
+                flag = true;
+            } else {
+                SystemTime.nowSystemTime();
+                System.out.println("：添加学生信息到数据库失败！");
+
+            }
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return flag;
     }
 }

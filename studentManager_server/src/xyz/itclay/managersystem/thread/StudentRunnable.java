@@ -1,5 +1,6 @@
 package xyz.itclay.managersystem.thread;
 
+import xyz.itclay.managersystem.domain.Grande;
 import xyz.itclay.managersystem.domain.Student;
 import xyz.itclay.managersystem.service.GrandService;
 import xyz.itclay.managersystem.service.StudentService;
@@ -17,7 +18,7 @@ import java.util.Properties;
  **/
 public class StudentRunnable implements Runnable {
     private final StudentService service = new StudentService();
-    private final GrandService grandService=new GrandService();
+    private final GrandService grandService = new GrandService();
     private final Socket socket;
     String loginUserName = "";
 
@@ -59,6 +60,12 @@ public class StudentRunnable implements Runnable {
                 case "[6]":
                     addGrand(split[1]);
                     break;
+                case "[7]":
+                    Grande grande = new Grande(split[1], Integer.parseInt(split[2]),
+                            Integer.parseInt(split[3]),
+                            Integer.parseInt(split[4]));
+                    addGrand(grande);
+                    break;
                 default:
                     break;
             }
@@ -74,6 +81,26 @@ public class StudentRunnable implements Runnable {
 
     private void addGrand(String sid) {
         returnName(sid);
+    }
+
+    private void addGrand(Grande grande) {
+        boolean res = grandService.addGrand(grande);
+        String resMsg = "添加成功";
+        if (!res) {
+            resMsg = "添加失败";
+        }
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            bw.write(resMsg);
+            SystemTime.nowSystemTime();
+            System.out.println("：" + loginUserName + "用户添加学生成绩：" + resMsg + ",学生成绩为：" + grande.toString());
+            bw.flush();
+            bw.close();
+            socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -233,10 +260,11 @@ public class StudentRunnable implements Runnable {
 
     /**
      * 根据学号，在数据库中查询，返回学生姓名
+     *
      * @param sid
      */
-    public void returnName(String sid){
-        String name=grandService.returnName(sid);
+    public void returnName(String sid) {
+        String name = grandService.returnName(sid);
         try {
             OutputStream os = socket.getOutputStream();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));

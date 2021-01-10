@@ -14,6 +14,7 @@ import java.util.Scanner;
  * @date 2021/1/9 16:05
  **/
 public class GrandeController {
+    static Grande grande = new Grande();
     static Scanner scanner = new Scanner(System.in);
 
     public static void start() {
@@ -83,12 +84,12 @@ public class GrandeController {
             String s = br.readLine();
             lo:
             while (true) {
-                System.out.println("请核对学生姓名是否正确：" + s );
+                System.out.println("请核对学生姓名是否正确：" + s);
                 System.out.println("y.正确      n.不正确");
                 String choice = scanner.next();
                 switch (choice) {
                     case "y":
-                        inputStudentInfo(sid);
+                        addGrande(sid);
                         break lo;
                     case "n":
                         addGrande();
@@ -106,25 +107,44 @@ public class GrandeController {
 
     }
 
+    private static void addGrande(String sid) {
+        inputStudentInfo(sid);
+        Socket socket = StudentController.getSocket();
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            bw.write("[7]," + grande.toString());
+            bw.flush();
+            socket.shutdownOutput();
+
+            //等着接收服务器响应
+            InputStream is = socket.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String s = br.readLine();
+            System.out.println(s);
+            //释放资源
+            br.close();
+            socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * 录入学生成绩
      */
 
     public static Grande inputStudentInfo(String sid) {
-        Grande grande = new Grande();
         System.out.print("请输入c语言成绩的>>>>>");
         int stuC = scanner.nextInt();
         System.out.print("请输入java成绩>>>>>");
         int stuJava = scanner.nextInt();
         System.out.print("请输入网络成绩>>>>>");
         int stuNetwork = scanner.nextInt();
-        System.out.print("请输入C#成绩>>>>>");
-        int stuCSharp = scanner.nextInt();
         grande.setSid(sid);
         grande.setC(stuC);
-        grande.setC(stuJava);
-        grande.setC(stuNetwork);
-        grande.setC(stuCSharp);
+        grande.setJava(stuJava);
+        grande.setNetwork(stuNetwork);
         return grande;
     }
 }

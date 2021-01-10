@@ -1,6 +1,7 @@
 package xyz.itclay.managersystem.service;
 
 import xyz.itclay.managersystem.dao.GrandDao;
+import xyz.itclay.managersystem.domain.Grande;
 
 /**
  *
@@ -11,5 +12,9 @@ public class GrandService {
 GrandDao grandDao=new GrandDao();
     public String returnName(String sid) {
         return grandDao.findName(sid);
+    }
+
+    public boolean addGrand(Grande grande) {
+      return  grandDao.addGrand(grande);
     }
 }
