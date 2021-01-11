@@ -224,10 +224,10 @@ public class Login {
             String newPassword = scanner.next();
             System.out.println("确认密码:");
             String confirmPassword = scanner.next();
-            if (oldPassword.equals(sid)&&newPassword.equals(confirmPassword)){
-                GrandeController.changePassword(sid,confirmPassword);
+            if (oldPassword.equals(sid) && newPassword.equals(confirmPassword)) {
+                GrandeController.changePassword(sid, confirmPassword);
                 break;
-            }else {
+            } else {
                 System.out.println("您的两次密码输入不一致，请重新输入!");
             }
         }

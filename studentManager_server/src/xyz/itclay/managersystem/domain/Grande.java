@@ -54,8 +54,6 @@ public class Grande {
         this.network = network;
     }
 
-
-
     @Override
     public String toString() {
         return sid + ',' + c + "," + java + "," + network ;

@@ -11,7 +11,7 @@ import java.util.Properties;
  **/
 public class PropertiesUtil {
     public static Properties drive() throws Exception{
-        File file=new File("E:\\IdeaProject\\studentmanager-version-3.0\\studentManager_server\\database.properties");
+        File file=new File("E:\\IdeaProject\\studentmanager-version-3.0\\studentManager_server\\src\\database.properties");
         FileInputStream fileInputStream=new FileInputStream(file);
         Properties properties=new Properties();
         properties.load(fileInputStream);

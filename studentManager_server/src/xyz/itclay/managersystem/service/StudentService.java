@@ -15,8 +15,6 @@ public class StudentService {
      * 添加学生
      */
     public boolean addStudent(Student stu) {
-        //1. 创建一个库管对象,指挥库管对象将学生对象添加到数据仓库
-        //2. 将库管添加之后返回的结果回传给业务员
         return dao.addStudent(stu);
     }
 

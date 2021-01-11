@@ -321,6 +321,7 @@ public class StudentRunnable implements Runnable {
      * 查看学生
      */
     private void findAllStudent() {
+
         Student[] stus = service.findAllStudent();
         if (stus == null) {
             try {
@@ -344,7 +345,7 @@ public class StudentRunnable implements Runnable {
                 LOGGER.info(loginUserName + "用户查看所有学生...");
                 bw.flush();
                 bw.close();
-                socket.shutdownOutput();
+                socket.close();
             } catch (Exception e) {
                 LOGGER.error("查看学生失败" + e);
             }

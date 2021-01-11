@@ -132,7 +132,7 @@ public class GrandDao {
      * 删除学生信息,根据学生学号
      */
 
-    public Boolean remove(String sid) {
+    public void remove(String sid) {
         boolean flag = false;
         try {
             PreparedStatement ps = conn.prepareStatement(DELETE_STUDENT);
@@ -146,7 +146,6 @@ public class GrandDao {
         } catch (SQLException throwables) {
             LOGGER.error("数据库删除学生异常:" + throwables);
         }
-        return flag;
     }
 
     /**
