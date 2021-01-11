@@ -25,6 +25,8 @@ public class GrandDao {
     private static final String FIND_STUDENT_RESULT = "select * from tb_Grandes";
     private static final String ADD_USER = "insert into tb_User(User_Name,Password) values (?,?)";
     private static final String USER_LOGIN = " select  * from  tb_User WHERE User_Name=? and Password=?";
+    private static final String FIND_STUDENT_RESULT_SID = "select * from tb_Grandes where Student_Id=?";
+    private static final String CHANGE_PASSWORD="update tb_User set Password=? where User_Name=?";
     public static Connection conn;
 
     static {
@@ -40,6 +42,28 @@ public class GrandDao {
             LOGGER.error("数据库连接失败!");
         }
 
+    }
+
+    /**
+     * 根据学生学号，查询学生成绩
+     */
+    public StudentResult conditionQuery(String sid) {
+        StudentResult studentResult = new StudentResult();
+        try {
+            PreparedStatement ps = conn.prepareStatement(FIND_STUDENT_RESULT_SID);
+            ps.setString(1,sid);
+            ResultSet resultSet = ps.executeQuery();
+            while (resultSet.next()){
+                studentResult.setSid(resultSet.getString(1));
+                studentResult.setName(resultSet.getString(2));
+                studentResult.setC(Integer.parseInt(resultSet.getString(3)));
+                studentResult.setJava(Integer.parseInt(resultSet.getString(4)));
+                studentResult.setNetwork(Integer.parseInt(resultSet.getString(5)));
+            }
+        } catch (SQLException throwables) {
+            LOGGER.error("数据库异常!");
+        }
+        return studentResult;
     }
 
     /**
@@ -86,7 +110,7 @@ public class GrandDao {
     }
 
     /**
-     *以学生的学号作为账号和密码，同步到数据库的tb_User表中
+     * 以学生的学号作为账号和密码，同步到数据库的tb_User表中
      */
 
     public static void addUser(String sid) {
@@ -185,5 +209,42 @@ public class GrandDao {
             LOGGER.error("数据库异常" + throwables);
         }
         return flag;
+    }
+
+    /**
+     * 判断学生学号在tb_User表中是否存在，以及用户输入的是否匹配
+     */
+    public boolean isStudent(String sid, String password) {
+        boolean flag = false;
+        try {
+            PreparedStatement ps = conn.prepareStatement(USER_LOGIN);
+            ps.setString(1, sid);
+            ps.setString(2, password);
+            ResultSet resultSet = ps.executeQuery();
+            if (resultSet.next()) {
+                flag = true;
+            }
+        } catch (SQLException throwables) {
+            LOGGER.error("用户登录失败!登录账号:" + sid);
+        }
+        return flag;
+    }
+
+    /**
+     * 修改学生密码
+     */
+    public void changePassword(String sid, String password) {
+        try {
+            PreparedStatement ps = conn.prepareStatement(CHANGE_PASSWORD);
+            ps.setString(2, sid);
+            ps.setString(1, password);
+            if (ps.executeUpdate() > 0) {
+                LOGGER.info("修改数据库学生密码成功！修改的学生信息为:" + sid);
+            } else {
+                LOGGER.info("修改学生密码失败！" + sid);
+            }
+        } catch (SQLException throwables) {
+            LOGGER.error("数据库修改学生异常:" + throwables);
+        }
     }
 }

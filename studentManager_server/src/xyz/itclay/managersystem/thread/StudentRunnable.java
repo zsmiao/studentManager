@@ -82,6 +82,15 @@ public class StudentRunnable implements Runnable {
                 case "[10]":
                     isStudent(split[1], split[2]);
                     break;
+                case "[11]":
+                    conditionQuery(split[1]);
+                    break;
+                case "[12]":
+                    conditionStudent(split[1]);
+                    break;
+                case "[13]":
+                    changePassword(split[1],split[2]);
+                    break;
                 default:
                     break;
             }
@@ -92,10 +101,93 @@ public class StudentRunnable implements Runnable {
     }
 
     /**
+     * 学生修改密码
+     */
+    private void changePassword(String sid, String password) {
+        grandService.changePassword(sid,password);
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            String str = "修改成功！";
+            bw.write(str);
+            LOGGER.info(sid + "修改密码：" + str );
+            bw.flush();
+            bw.close();
+            socket.close();
+        } catch (Exception e) {
+            LOGGER.error("学生修改密码失败!" + e);
+        }
+    }
+
+    /**
+     *条件查询学生信息
+     */
+    private void conditionStudent(String sid) {
+        Student resultStudent=new Student();
+        Student[] allStudent = service.findAllStudent();
+        for (Student student : allStudent) {
+            if (student.getSid().equals(sid)){
+                resultStudent=student;
+            }
+        }
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            bw.write(String.valueOf(resultStudent));
+            LOGGER.info(sid + "查看个人信息...");
+            bw.flush();
+            bw.close();
+            socket.shutdownOutput();
+        } catch (Exception e) {
+            LOGGER.error("查看个人信息失败!" + e);
+        }
+
+    }
+
+    /**
+     * 根据学生学号，查询学生成绩
+     */
+    private void conditionQuery(String sid) {
+        StudentResult studentResult1 = grandService.conditionQuery(sid);
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            String studentResult = studentResult1.toString();
+            bw.write(String.valueOf(studentResult));
+            LOGGER.info(loginUserName + "用户查看所有学生的成绩...");
+            bw.flush();
+            socket.shutdownOutput();
+        } catch (Exception e) {
+            LOGGER.error("查看学生失败" + e);
+        }
+    }
+
+    /**
      * 判断学生登录
      */
-    private void isStudent(String s, String s1) {
-
+    private void isStudent(String sid, String password) {
+        InetAddress address = socket.getInetAddress();
+        String hostAddress = address.getHostAddress();
+        int port = socket.getLocalPort();
+        boolean result = grandService.isStudent(sid, password);
+        String resMsg = "";
+        if (result) {
+            resMsg = "登录成功";
+        } else {
+            resMsg = "登录失败";
+        }
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            bw.write(resMsg);
+            LOGGER.info(sid + "用户" + resMsg + ",IP为:" + hostAddress + ":" + port);
+            loginUserName = sid;
+            bw.flush();
+            bw.close();
+            socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -121,7 +213,6 @@ public class StudentRunnable implements Runnable {
                 BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
                 for (StudentResult studentResult : list) {
                     bw.write(String.valueOf(studentResult) + "、");
-                    System.out.println(studentResult.toString());
                 }
                 LOGGER.info(loginUserName + "用户查看所有学生的成绩...");
                 bw.flush();

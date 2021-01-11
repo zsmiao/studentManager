@@ -52,16 +52,17 @@ public class GrandeController {
      * 查看学生成绩
      */
     private static void findAllGrande() {
-        System.out.println("请选择：1.条件查询     2.查询所有");
+        System.out.println("请选择：1.筛选条件   2.查询所有   0.退出");
         String choice = scanner.next();
         switch (choice) {
             case "1":
-                System.out.println("条件查询");
-                ConditionQuery();
+                filterCondition();
                 break;
             case "2":
                 viewAll();
                 break;
+            case "0":
+                return;
             default:
                 System.out.println("您的选择有误，请您重新选择！");
         }
@@ -103,7 +104,43 @@ public class GrandeController {
     /**
      * 条件查询学生成绩信息
      */
-    private static void ConditionQuery() {
+    public static void conditionQuery(String sid) {
+        Socket socket = StudentController.getSocket();
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            bw.write("[11]," + sid);
+            bw.flush();
+            socket.shutdownOutput();
+
+            InputStream is = socket.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String s = br.readLine();
+            System.out.println("学号\t\t\t姓名\t\tC语言\t\tJava\t\t网络");
+            String[] split = s.split(",");
+            System.out.println(split[0] + "\t" + split[1] + "\t\t" + split[2] + "\t\t\t" + split[3] + "\t\t\t" + split[4]);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void filterCondition() {
+        while (true) {
+            System.out.println("请选择您要筛选的条件:");
+            System.out.println("1.学号  2.姓名   3.C语言   4.JAVA   5.网络  0.退出");
+            String choice = scanner.next();
+            switch (choice) {
+                case "1":
+                    System.out.println("请输入学号:");
+                    String sid = scanner.next();
+                    conditionQuery(sid);
+                    break;
+                case "0":
+                    return;
+                default:
+                    System.out.println("您的输入有误!");
+            }
+        }
     }
 
     /**
@@ -195,7 +232,7 @@ public class GrandeController {
      * 录入学生成绩
      */
 
-    public static Grande inputStudentInfo(String sid) {
+    public static void inputStudentInfo(String sid) {
         System.out.print("请输入c语言成绩的>>>>>");
         int stuC = scanner.nextInt();
         System.out.print("请输入java成绩>>>>>");
@@ -206,18 +243,37 @@ public class GrandeController {
         grande.setC(stuC);
         grande.setJava(stuJava);
         grande.setNetwork(stuNetwork);
-        return grande;
+        // return grande;
     }
 
     /**
      * 根据学号，返回学生姓名
-     *
-     * @param sid
-     * @return
      */
     private static boolean returnStudentName(String sid) {
-        Socket socket = StudentController.getSocket();
         boolean flag = false;
+        String s = studentName(sid);
+        lo:
+        while (true) {
+            System.out.println("请核对学生姓名是否正确：" + s);
+            System.out.println("y.正确      n.不正确");
+            String choice = scanner.next();
+            switch (choice) {
+                case "y":
+                    flag = true;
+                    break lo;
+                case "n":
+                    break lo;
+                default:
+                    System.out.println("您的输入有误，请您重新核对！");
+            }
+        }
+
+        return flag;
+    }
+
+    public static String studentName(String sid) {
+        Socket socket = StudentController.getSocket();
+        String name = "";
         try {
             OutputStream os = socket.getOutputStream();
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
@@ -227,28 +283,64 @@ public class GrandeController {
             //等着接收服务器响应
             InputStream is = socket.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
-            String s = br.readLine();
-            lo:
-            while (true) {
-                System.out.println("请核对学生姓名是否正确：" + s);
-                System.out.println("y.正确      n.不正确");
-                String choice = scanner.next();
-                switch (choice) {
-                    case "y":
-                        flag = true;
-                        break lo;
-                    case "n":
-                        break lo;
-                    default:
-                        System.out.println("您的输入有误，请您重新核对！");
-                }
-            }
+            name = br.readLine();
             //释放资源
             br.close();
             socket.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return flag;
+        return name;
+    }
+
+    /**
+     * 条件查询学生信息
+     */
+    public static void conditionStudent(String sid) {
+        Socket socket = StudentController.getSocket();
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            bw.write("[12],"+sid);
+            bw.flush();
+            socket.shutdownOutput();
+
+            InputStream is = socket.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String s = br.readLine();
+
+            System.out.println("学号\t\t\t姓名\t\t年龄\t\t生日");
+            String[] split = s.split(",");
+            System.out.println(split[0] + "\t" + split[1] + "\t\t" + split[2] + "\t\t" + split[3]);
+            //释放资源
+            br.close();
+            socket.close();
+        } catch (Exception e) {
+        }
+    }
+
+    /**
+     * 学生修改密码
+     */
+    public static void changePassword(String sid, String confirmPassword) {
+        Socket socket = StudentController.getSocket();
+        try {
+            OutputStream os = socket.getOutputStream();
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+            bw.write("[13]," + sid+","+confirmPassword);
+            bw.flush();
+            socket.shutdownOutput();
+
+            //等着接收服务器响应
+            InputStream is = socket.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String s = br.readLine();
+            System.out.println(s);
+            //释放资源
+            br.close();
+            socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
